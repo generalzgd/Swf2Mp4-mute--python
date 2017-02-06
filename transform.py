@@ -8,6 +8,7 @@ import os
 import subprocess
 import shutil
 
+
 class Transformer:
     def __init__(self):
         self.TEMP_profix = "TMP_"
@@ -31,6 +32,13 @@ class Transformer:
 
     """"""
     def start(self, swfPath):
+        print swfPath
+        # print os.path.relpath(swfPath)
+        # print os.path.isabs(swfPath)
+        if os.path.exists(swfPath) == False or os.path.isdir(swfPath):
+            print "Input swf file do not exist"
+            exit()
+
         # parse file infomation
         self.__parse_swf_file(swfPath)
 
@@ -40,27 +48,29 @@ class Transformer:
 
         # start save frame image
         # create temp directory
-        swfName, extension = os.path.splitext(swfPath)
+        swfName, extension = os.path.splitext(os.path.basename(swfPath))
         self.temp_dir = os.path.join(os.path.dirname(swfPath), self.TEMP_profix + swfName)
         self.temp_frame_img_format = os.path.join(self.temp_dir, self.TEMP_IMG_FORMAT)
 
         if os.path.exists(self.temp_dir):
             if os.path.isdir(self.temp_dir):
                 shutil.rmtree(self.temp_dir, True)
-                # os.removedirs(self.temp_dir)
             else:
                 os.remove(self.temp_dir)
         os.mkdir(self.temp_dir)
-
         self.__save_frame_img(swfPath, self.temp_frame_img_format)
 
         self.mp4_path = os.path.join(os.path.dirname(swfPath), swfName + ".mp4")
+        if os.path.exists(self.mp4_path):
+            if os.path.isdir(self.mp4_path):
+                shutil.rmtree(self.mp4_path, True)
+            else:
+                os.remove(self.mp4_path)
         self.__merge_mp4(self.temp_frame_img_format, self.mp4_path)
 
         # remove temp directory
         try:
             shutil.rmtree(self.temp_dir, True)
-            # os.remove(self.temp_dir)
         except:
             pass
 
@@ -72,20 +82,26 @@ class Transformer:
             exit()
 
     def __save_frame_img(self, swfPath, frameFormat):
+        # gnash
+        # --once --screenshot 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+        # --screenshot-file TMP_test/TMP_%f.png
+        # test.swf
         frame_list = [str(id) for id in range(1, self.frame_count+1)]
         frame_str = ",".join(frame_list)
-        # args = ['gnash', '--once', '--screenshot', frame_str, '--screenshot-file', frameFormat, swfPath]
-        args = ['/usr/bin/gnash']
-        screen_result = subprocess.Popen(args=args, shell=True)
+        args = ['gnash', '--once', '--screenshot', frame_str, '--screenshot-file', frameFormat, swfPath]
+        # args = ['gnash']
+        screen_result = subprocess.Popen(args=args)
         screen_result.wait()
         if screen_result.returncode != 0:
             print "Something wrong when extract frame image"
             exit()
 
     def __merge_mp4(self, frameFormat, mp4Path):
-        args = ['ffmpeg', '-f', 'image2', '-i', frameFormat, '-vcodec', 'libx264', '-thread', '0',
-                '-r', self.frame_rate, '-g', '50', '-b', '500k', '-y', mp4Path]
-        ffmpeg_result = subprocess.Popen(args=args, shell=True)
+        # ffmpeg -f image2 -i TMP_test/TMP_%d.png -vcodec libx264 -threads 0 -r 24 -g 50 -b 500k - y test.mp4
+        args = ['ffmpeg', '-f', 'image2', '-i', frameFormat.replace("%f", "%d"), '-vcodec', 'libx264', '-threads', '0',
+                '-r', str(int(self.frame_rate)), '-g', '50', '-b', '500k', '-y', mp4Path]
+        print args
+        ffmpeg_result = subprocess.Popen(args=args)
         ffmpeg_result.wait()
         if ffmpeg_result.returncode != 0:
             print "Something wrong when merge Mp4 file!"

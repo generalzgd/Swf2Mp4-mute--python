@@ -5,7 +5,7 @@ from transform import Transformer
 
 
 def show_usage():
-    print "main.py input.swf"
+    print "Usage:: main.py /input.swf"
 
 if __name__ == "__main__":
     print "Start runing"
@@ -15,12 +15,15 @@ if __name__ == "__main__":
 
     if len(sys.argv) == 1:
         show_usage()
-        # exit(0)
-        swfPath = "test.swf"
+        exit(0)
+        # swfPath = "/home/zgd/PycharmProjects/Swf2MuteMp4-python/test.swf"
+        # swfPath = "test.swf"
     else:
         swfPath = sys.argv[1]
 
     trans = Transformer()
 
     trans.start(swfPath)
+
+    print "Swf tansfor to Mp4 successed!!!!"
 

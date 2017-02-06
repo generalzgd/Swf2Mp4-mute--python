@@ -1,7 +1,7 @@
-#！ /usr/bin/evn python
-# encoding: utf-8
+#! /usr/bin/python
+# -*- coding:utf-8 -*-
 
-'''
+"""
 @version: 1.0.0
 @author: zgd: general_zgd
 @license: LGPL v3
@@ -10,7 +10,8 @@
 @software: PyCharm Community Edition
 @file: main.py
 @time: 17-2-6 下午4:16
-'''
+"""
+
 
 import sys
 from transform import Transformer
